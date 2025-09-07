@@ -23,13 +23,13 @@ LarkMasterMCP is a comprehensive MCP (Model Context Protocol) server for Lark (F
 
 ### Comparison with Official Implementation
 
-Our LarkMasterMCP is a simplified Python implementation compared to the official TypeScript version:
+Our LarkMasterMCP is a comprehensive Python implementation compared to the official TypeScript version:
 
 **Our Implementation**:
-- 30 manually curated tools
+- 101 manually curated tools covering all major Lark features
 - Python-based for easy customization
 - Tenant access token authentication
-- Focused on common use cases
+- Comprehensive coverage of Lark platform capabilities
 
 **Official Implementation**:
 - 100+ auto-generated tools from OpenAPI specs
@@ -105,27 +105,49 @@ src/lark_master_mcp/
    - Handles API errors and rate limiting
 
 3. **Tool Definitions (`tools.py`)**:
-   - Defines 30 comprehensive tools for Lark operations
+   - Defines 101 comprehensive tools for Lark operations
    - JSON schemas for input validation
-   - Covers all major Lark platform features including messaging, calendar, documents, tasks, wiki, HR, and more
+   - Covers all major Lark platform features including messaging, calendar, documents, tasks, wiki, HR, Bitable, AI agents, workflows, OKRs, forms, and more
 
 4. **CLI Interface (`cli.py`)**:
    - Environment variable and command-line argument handling
    - Server startup and error handling
 
-### Available Tools (30 total)
+### Available Tools (101 total)
 
-**Messaging & Communication**: `send_message`, `search_messages`, `list_chats`, `create_chat_group`, `get_chat_members`, `add_bot_to_chat`, `create_poll`
+**Messaging & Communication (16 tools)**: `send_message`, `search_messages`, `list_chats`, `create_chat_group`, `get_chat_members`, `add_bot_to_chat`, `create_poll`, `reply_message`, `add_message_reaction`, `delete_message_reaction`, `pin_message`, `unpin_message`, `forward_message`, `send_urgent_message`, `read_message`, `get_message_read_users`
 
-**Calendar & Meetings**: `create_calendar_event`, `get_user_calendar`, `create_meeting`, `share_screen`, `set_out_of_office`
+**Calendar & Meetings (11 tools)**: `create_calendar_event`, `get_user_calendar`, `create_meeting`, `share_screen`, `set_out_of_office`, `list_free_busy`, `create_calendar_reminder`, `create_recurring_event`, `book_meeting_room`, `search_meeting_rooms`, `accept_calendar_event`, `decline_calendar_event`
 
-**Documents & Files**: `create_document`, `upload_file`, `create_drive_folder`, `share_file`, `get_spreadsheet_data`, `update_spreadsheet_data`
+**Documents & Files (17 tools)**: `create_document`, `upload_file`, `create_drive_folder`, `share_file`, `get_spreadsheet_data`, `update_spreadsheet_data`, `search_documents`, `import_document`, `export_document`, `get_document_content`, `add_document_permission`, `add_document_comment`, `get_document_comments`, `create_document_from_template`, `lock_document_section`, `unlock_document_section`, `subscribe_document_changes`
 
-**Tasks & Workflows**: `create_task`, `update_task_status`, `create_approval`, `get_approval_status`
+**Bitable (Multi-dimensional Tables) (5 tools)**: `batch_create_records`, `batch_update_records`, `create_bitable_table`, `create_bitable_view`, `add_bitable_field`, `get_bitable_records`, `delete_bitable_records`
 
-**Knowledge Management**: `create_wiki_space`, `create_wiki_page`, `search_wiki`
+**Tasks & Workflows (7 tools)**: `create_task`, `update_task_status`, `create_approval`, `get_approval_status`, `add_task_reminder`, `create_workflow`, `execute_workflow`
 
-**HR & Organization**: `get_user_info`, `get_department_users`, `create_leave_request`, `get_attendance_records`
+**Advanced Approval Management (5 tools)**: `transfer_approval`, `cancel_approval`, `cc_approval`, `add_approval_comment`, `rollback_approval`
+
+**Video Conference Recording (3 tools)**: `start_meeting_recording`, `stop_meeting_recording`, `get_meeting_recording`
+
+**Advanced Bitable Operations (6 tools)**: `search_bitable_records`, `get_bitable_fields`, `update_bitable_field`, `create_bitable_app`, `get_bitable_views`, `update_bitable_view`
+
+**Helpdesk/Support Management (4 tools)**: `create_helpdesk_ticket`, `get_helpdesk_ticket`, `update_helpdesk_ticket`, `list_helpdesk_tickets`
+
+**Drive Advanced Operations (4 tools)**: `create_file_version`, `get_file_versions`, `update_file_permission`, `get_file_permissions`
+
+**Knowledge Management (3 tools)**: `create_wiki_space`, `create_wiki_page`, `search_wiki`
+
+**HR & Organization (5 tools)**: `get_user_info`, `get_department_users`, `create_leave_request`, `get_attendance_records`, `get_user_by_email_or_phone`
+
+**Bot/App Management (3 tools)**: `create_bot_menu`, `update_bot_info`, `subscribe_events`
+
+**Admin & Security (3 tools)**: `get_app_usage_stats`, `get_audit_logs`, `manage_app_permissions`
+
+**AI/Assistant (2 tools)**: `create_ai_agent`, `chat_with_ai`
+
+**OKR Management (2 tools)**: `create_okr`, `update_okr_progress`
+
+**Forms (2 tools)**: `create_form`, `get_form_responses`
 
 ## Configuration
 
