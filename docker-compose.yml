@@ -1,0 +1,37 @@
+# LarkMasterMCP Docker Compose
+# 使い方: docker-compose up -d
+
+version: '3.8'
+
+services:
+  lark-mcp:
+    build: .
+    container_name: lark-master-mcp
+    ports:
+      - "8000:8000"
+    environment:
+      - LARK_APP_ID=${LARK_APP_ID}
+      - LARK_APP_SECRET=${LARK_APP_SECRET}
+      - PORT=8000
+      - HOST=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+# 使用方法:
+# 1. .env ファイルを作成（または環境変数を設定）
+#    LARK_APP_ID=cli_xxxxx
+#    LARK_APP_SECRET=xxxxx
+#
+# 2. 起動
+#    docker-compose up -d
+#
+# 3. 確認
+#    curl http://localhost:8000/health
+#
+# 4. ツール一覧
+#    curl http://localhost:8000/tools

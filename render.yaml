@@ -1,0 +1,16 @@
+# Render.com デプロイ設定
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: lark-master-mcp
+    env: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: LARK_APP_ID
+        sync: false
+      - key: LARK_APP_SECRET
+        sync: false
+      - key: PORT
+        value: 8000

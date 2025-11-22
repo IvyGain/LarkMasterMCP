@@ -397,6 +397,90 @@ LarkMasterMCP/
 
 ---
 
+## 🌐 リモートMCPサーバー
+
+### ローカルでリモートサーバー起動
+
+```bash
+# リモートサーバーを起動（HTTP/SSE対応）
+lark-mcp-server
+
+# または直接実行
+python -m lark_master_mcp.remote_server
+```
+
+サーバーが `http://localhost:8000` で起動します。
+
+### APIエンドポイント
+
+| エンドポイント | 説明 |
+|--------------|------|
+| `GET /` | サーバー情報 |
+| `GET /health` | ヘルスチェック |
+| `GET /tools` | ツール一覧（108個） |
+| `POST /call` | ツール実行 |
+| `GET /sse` | SSEストリーム接続 |
+| `POST /sse/call` | SSEでツール実行 |
+
+### 使用例
+
+```bash
+# ヘルスチェック
+curl http://localhost:8000/health
+
+# ツール一覧
+curl http://localhost:8000/tools
+
+# ツール実行
+curl -X POST http://localhost:8000/call \
+  -H "Content-Type: application/json" \
+  -d '{"name": "list_bitable_templates", "arguments": {}}'
+
+# スマートBitable作成
+curl -X POST http://localhost:8000/call \
+  -H "Content-Type: application/json" \
+  -d '{"name": "smart_build_bitable", "arguments": {"message": "顧客管理テーブルを作成"}}'
+```
+
+### Dockerでデプロイ
+
+```bash
+# ビルド
+docker build -t lark-master-mcp .
+
+# 起動
+docker run -d -p 8000:8000 \
+  -e LARK_APP_ID=cli_xxxxx \
+  -e LARK_APP_SECRET=xxxxx \
+  lark-master-mcp
+
+# または docker-compose
+docker-compose up -d
+```
+
+### クラウドにデプロイ
+
+**Railway:**
+```bash
+# railway.jsonを使用
+railway up
+```
+
+**Render:**
+```bash
+# render.yamlを使用してデプロイ
+# 環境変数にLARK_APP_IDとLARK_APP_SECRETを設定
+```
+
+**Fly.io:**
+```bash
+fly launch
+fly secrets set LARK_APP_ID=cli_xxxxx LARK_APP_SECRET=xxxxx
+fly deploy
+```
+
+---
+
 ## 🔒 セキュリティ
 
 - 認証情報は環境変数で管理（コードに埋め込まない）
