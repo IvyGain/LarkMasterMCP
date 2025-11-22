@@ -2251,5 +2251,114 @@ LARK_TOOLS: List[Dict[str, Any]] = [
             },
             "required": ["file_token"]
         }
+    },
+    # ===== Super Lark MCP - Advanced Smart Tools =====
+    {
+        "name": "smart_build_bitable",
+        "description": "Intelligently build a complete Bitable (multi-dimensional table) from natural language description. Automatically designs table structure, fields, and field types based on the purpose described in the message. Supports templates like customer management, project management, inventory, sales, events, HR, support tickets, and meeting notes.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "Natural language description of what kind of table/database you want to create. Examples: '顧客管理テーブルを作成', 'プロジェクト管理用のベースを作って', 'Create an inventory tracking system'"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Optional: Custom name for the Bitable app"
+                },
+                "folder_token": {
+                    "type": "string",
+                    "description": "Optional: Folder token where to create the Bitable"
+                }
+            },
+            "required": ["message"]
+        }
+    },
+    {
+        "name": "process_lark_message",
+        "description": "Process a Lark chat message and automatically execute appropriate MCP tools based on the intent. Supports commands like creating Bitables, Wiki spaces, documents, tasks, and searching. Use this to build an intelligent Lark bot that responds to natural language instructions.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "The chat message to process. Can be natural language instructions like '顧客管理システムを作って' or 'ヘルプ'"
+                }
+            },
+            "required": ["message"]
+        }
+    },
+    {
+        "name": "generate_bitable_documentation",
+        "description": "Generate documentation for a Bitable design in Markdown format. Creates a comprehensive manual describing tables, fields, and usage instructions.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "Description of the Bitable to document (same as smart_build_bitable message)"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name of the Bitable"
+                }
+            },
+            "required": ["message"]
+        }
+    },
+    {
+        "name": "create_bitable_with_wiki",
+        "description": "Create a complete Bitable system with automatic Wiki documentation. This is a compound tool that: 1) Builds the Bitable from your description, 2) Creates a Wiki space, 3) Generates and publishes documentation about the created system.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "Natural language description of what kind of system you want to create"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name for the system (used for both Bitable and Wiki)"
+                },
+                "folder_token": {
+                    "type": "string",
+                    "description": "Optional: Folder token for creating files"
+                }
+            },
+            "required": ["message"]
+        }
+    },
+    {
+        "name": "list_bitable_templates",
+        "description": "List all available Bitable templates that can be used with smart_build_bitable. Returns template names and their field structures.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": False
+        }
+    },
+    {
+        "name": "analyze_message_intent",
+        "description": "Analyze a message and return the detected intent without executing any action. Useful for understanding what command would be triggered by a message.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "The message to analyze"
+                }
+            },
+            "required": ["message"]
+        }
+    },
+    {
+        "name": "get_lark_bot_help",
+        "description": "Get help information about the Lark Master MCP bot capabilities, available commands, and templates.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": False
+        }
     }
 ]

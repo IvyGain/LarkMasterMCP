@@ -26,7 +26,10 @@ LarkMasterMCP is a comprehensive MCP (Model Context Protocol) server for Lark (F
 Our LarkMasterMCP is a comprehensive Python implementation compared to the official TypeScript version:
 
 **Our Implementation**:
-- 101 manually curated tools covering all major Lark features
+- 108 tools (101 base + 7 smart tools) covering all major Lark features
+- **Smart Bitable Builder**: Auto-generate tables from natural language
+- **Message Handler**: Process chat messages and execute appropriate tools
+- **Documentation Generator**: Auto-generate Wiki documentation
 - Python-based for easy customization
 - Tenant access token authentication
 - Comprehensive coverage of Lark platform capabilities
@@ -86,10 +89,12 @@ lark-mcp --app-id YOUR_APP_ID --app-secret YOUR_APP_SECRET
 ```
 src/lark_master_mcp/
 ├── __init__.py          # Package initialization
-├── server.py            # Main MCP server implementation  
+├── server.py            # Main MCP server implementation
 ├── lark_client.py       # Lark API client with authentication
-├── tools.py             # Tool definitions and schemas
-└── cli.py               # Command-line interface
+├── tools.py             # Tool definitions and schemas (108 tools)
+├── cli.py               # Command-line interface
+├── smart_builder.py     # Smart Bitable auto-builder engine
+└── message_handler.py   # Message parsing and command execution
 ```
 
 ### Key Components
@@ -105,7 +110,7 @@ src/lark_master_mcp/
    - Handles API errors and rate limiting
 
 3. **Tool Definitions (`tools.py`)**:
-   - Defines 101 comprehensive tools for Lark operations
+   - Defines 108 comprehensive tools for Lark operations
    - JSON schemas for input validation
    - Covers all major Lark platform features including messaging, calendar, documents, tasks, wiki, HR, Bitable, AI agents, workflows, OKRs, forms, and more
 
@@ -113,7 +118,19 @@ src/lark_master_mcp/
    - Environment variable and command-line argument handling
    - Server startup and error handling
 
-### Available Tools (101 total)
+5. **Smart Bitable Builder (`smart_builder.py`)**:
+   - Analyzes natural language to design table structures
+   - 8 pre-built templates (Customer, Project, Inventory, Sales, Events, HR, Support, Meeting Notes)
+   - Auto-generates fields with appropriate types
+   - Creates documentation automatically
+
+6. **Message Handler (`message_handler.py`)**:
+   - Parses chat messages to detect intent
+   - Routes commands to appropriate handlers
+   - Supports Bot event webhook processing
+   - Provides help and guidance
+
+### Available Tools (108 total)
 
 **Messaging & Communication (16 tools)**: `send_message`, `search_messages`, `list_chats`, `create_chat_group`, `get_chat_members`, `add_bot_to_chat`, `create_poll`, `reply_message`, `add_message_reaction`, `delete_message_reaction`, `pin_message`, `unpin_message`, `forward_message`, `send_urgent_message`, `read_message`, `get_message_read_users`
 
@@ -148,6 +165,8 @@ src/lark_master_mcp/
 **OKR Management (2 tools)**: `create_okr`, `update_okr_progress`
 
 **Forms (2 tools)**: `create_form`, `get_form_responses`
+
+**Super Lark MCP - Smart Tools (7 tools)**: `smart_build_bitable`, `process_lark_message`, `generate_bitable_documentation`, `create_bitable_with_wiki`, `list_bitable_templates`, `analyze_message_intent`, `get_lark_bot_help`
 
 ## Configuration
 

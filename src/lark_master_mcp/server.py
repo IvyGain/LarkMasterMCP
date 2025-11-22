@@ -11,6 +11,8 @@ from pydantic import BaseModel
 
 from .lark_client import LarkClient
 from .tools import LARK_TOOLS
+from .smart_builder import SmartBitableBuilder, DocumentationGenerator
+from .message_handler import MessageHandler, MessageParser
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -19,11 +21,18 @@ logger.setLevel(logging.INFO)
 
 class LarkMCPServer:
     """Main MCP server for Lark integration."""
-    
+
     def __init__(self, app_id: str, app_secret: str):
         self.server = Server("lark-master-mcp")
         self.lark_client = LarkClient(app_id, app_secret)
-        logger.info("Initializing LarkMasterMCP server with 101 tools")
+
+        # Initialize smart components
+        self.smart_builder = SmartBitableBuilder(self.lark_client)
+        self.doc_generator = DocumentationGenerator(self.lark_client)
+        self.message_handler = MessageHandler(self.lark_client, self.smart_builder)
+        self.message_parser = MessageParser()
+
+        logger.info("Initializing LarkMasterMCP server with 108 tools (including 7 smart tools)")
         self._register_handlers()
     
     def _register_handlers(self):
@@ -738,7 +747,101 @@ class LarkMCPServer:
                         file_token=arguments["file_token"],
                         type=arguments.get("type", "user")
                     )
-                    
+
+                # ===== Super Lark MCP - Smart Tools =====
+                elif name == "smart_build_bitable":
+                    result = await self.smart_builder.build_from_message(
+                        message=arguments["message"],
+                        name=arguments.get("name"),
+                        folder_token=arguments.get("folder_token")
+                    )
+
+                elif name == "process_lark_message":
+                    cmd_result = await self.message_handler.handle_message(
+                        message=arguments["message"]
+                    )
+                    result = {
+                        "success": cmd_result.success,
+                        "command_type": cmd_result.command_type.value,
+                        "message": cmd_result.message,
+                        "data": cmd_result.data
+                    }
+
+                elif name == "generate_bitable_documentation":
+                    design = self.smart_builder.design_bitable(
+                        message=arguments["message"],
+                        name=arguments.get("name")
+                    )
+                    doc_content = self.doc_generator.generate_bitable_documentation(design)
+                    result = {
+                        "documentation": doc_content,
+                        "design_name": design.name
+                    }
+
+                elif name == "create_bitable_with_wiki":
+                    # 1. Build Bitable
+                    bitable_result = await self.smart_builder.build_from_message(
+                        message=arguments["message"],
+                        name=arguments.get("name"),
+                        folder_token=arguments.get("folder_token")
+                    )
+
+                    # 2. Create Wiki space
+                    wiki_name = arguments.get("name", "システムドキュメント")
+                    wiki_result = await self.lark_client.create_wiki_space(
+                        name=f"{wiki_name} Wiki",
+                        description=f"{wiki_name}のドキュメンテーション"
+                    )
+
+                    # 3. Generate and create documentation
+                    design = self.smart_builder.design_bitable(
+                        message=arguments["message"],
+                        name=arguments.get("name")
+                    )
+                    space_id = wiki_result.get("space", {}).get("space_id", "")
+                    if space_id:
+                        doc_result = await self.doc_generator.create_wiki_documentation(
+                            design=design,
+                            space_id=space_id
+                        )
+                    else:
+                        doc_result = {"error": "Failed to get wiki space_id"}
+
+                    result = {
+                        "bitable": bitable_result,
+                        "wiki": wiki_result,
+                        "documentation": doc_result
+                    }
+
+                elif name == "list_bitable_templates":
+                    templates_info = {}
+                    for name_key, template in self.smart_builder.TEMPLATES.items():
+                        templates_info[name_key] = {
+                            "name": template["name"],
+                            "description": template["description"],
+                            "fields": [
+                                {"name": f.name, "type": f.field_type.name}
+                                for f in template["fields"]
+                            ]
+                        }
+                    result = {"templates": templates_info}
+
+                elif name == "analyze_message_intent":
+                    parsed = self.message_parser.parse(arguments["message"])
+                    result = {
+                        "command_type": parsed.command_type.value,
+                        "confidence": parsed.confidence,
+                        "parameters": parsed.parameters,
+                        "original_message": parsed.original_message
+                    }
+
+                elif name == "get_lark_bot_help":
+                    help_result = await self.message_handler.handle_message("ヘルプ")
+                    result = {
+                        "help_text": help_result.message,
+                        "templates": help_result.data.get("templates", []) if help_result.data else []
+                    }
+
                 else:
                     raise ValueError(f"Unknown tool: {name}")
                 
