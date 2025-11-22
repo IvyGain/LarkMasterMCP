@@ -1,460 +1,473 @@
-# LarkMasterMCP - Super Lark MCP
+# 🚀 LarkMasterMCP - スーパーLark MCP
 
-A comprehensive MCP (Model Context Protocol) server for Lark (Feishu) integration with **intelligent automation capabilities**. Build complete database systems from natural language!
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-green.svg)](https://modelcontextprotocol.io/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tools](https://img.shields.io/badge/Tools-108-purple.svg)](#利用可能なツール)
 
-## ✨ Highlights
+**自然言語でLarkを操作できる、最も包括的なMCPサーバー**
 
-- **108 Tools** - Most comprehensive Lark MCP implementation
-- **Smart Bitable Builder** - Create databases from natural language
-- **Auto Documentation** - Generate Wiki docs for created systems
-- **Message Bot** - Intelligent chat bot that executes commands
+「顧客管理テーブルを作成して」と言うだけで、AIが自動的にBitableを設計・構築します。
 
-## 🚀 Quick Start
+---
 
-### 1. Prerequisites
-- Python 3.8+
-- Lark App credentials ([Get from Lark Open Platform](https://open.feishu.cn/app))
+## ✨ 特徴
 
-### 2. Installation
+| 機能 | 説明 |
+|------|------|
+| 🧠 **スマートBitable構築** | 自然言語からデータベースを自動設計・作成 |
+| 📚 **自動ドキュメント生成** | 作成したシステムのWikiマニュアルを自動生成 |
+| 🤖 **108個のツール** | Larkの全機能を網羅した最も包括的な実装 |
+| 🎯 **8種類のテンプレート** | 顧客管理、プロジェクト管理、在庫管理など |
+| 🔧 **簡単セットアップ** | App IDとSecretを設定するだけ |
+
+---
+
+## 📦 インストール
+
+### 必要なもの
+- Python 3.8以上
+- Larkアプリの認証情報（[取得方法](#larkアプリの作成)）
+
+### 手順
 
 ```bash
-# Clone
+# 1. リポジトリをクローン
 git clone https://github.com/IvyGain/LarkMasterMCP.git
 cd LarkMasterMCP
 
-# Install
+# 2. インストール
 pip install -e .
 
-# Configure
+# 3. 環境設定
 cp .env.example .env
-# Edit .env with your credentials:
-# LARK_APP_ID=your_app_id
-# LARK_APP_SECRET=your_app_secret
 ```
 
-### 3. Run
+### 環境変数の設定
+
+`.env` ファイルを編集して、あなたのLarkアプリの認証情報を設定：
+
+```env
+LARK_APP_ID=cli_あなたのAppID
+LARK_APP_SECRET=あなたのAppSecret
+```
+
+---
+
+## 🔧 AIクライアントでの設定
+
+### Claude Desktop
+
+`~/Library/Application Support/Claude/claude_desktop_config.json` (Mac)
+`%APPDATA%\Claude\claude_desktop_config.json` (Windows)
+
+```json
+{
+  "mcpServers": {
+    "lark-master": {
+      "command": "lark-mcp",
+      "env": {
+        "LARK_APP_ID": "cli_あなたのAppID",
+        "LARK_APP_SECRET": "あなたのAppSecret"
+      }
+    }
+  }
+}
+```
+
+### Cursor
+
+`.cursor/mcp.json` をプロジェクトルートに作成：
+
+```json
+{
+  "mcpServers": {
+    "lark-master": {
+      "command": "lark-mcp",
+      "env": {
+        "LARK_APP_ID": "cli_あなたのAppID",
+        "LARK_APP_SECRET": "あなたのAppSecret"
+      }
+    }
+  }
+}
+```
+
+### VS Code (Claude Code Extension)
+
+`.vscode/settings.json`:
+
+```json
+{
+  "claude-code.mcpServers": {
+    "lark-master": {
+      "command": "lark-mcp",
+      "env": {
+        "LARK_APP_ID": "cli_あなたのAppID",
+        "LARK_APP_SECRET": "あなたのAppSecret"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🎮 使い方
+
+### 起動
 
 ```bash
 lark-mcp
 ```
 
-## 📋 Configuration for AI Clients
+### AIに話しかけるだけ
 
-### Claude Desktop
+設定が完了したら、Claudeなどに以下のように話しかけるだけです：
 
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "lark-master": {
-      "command": "lark-mcp",
-      "env": {
-        "LARK_APP_ID": "cli_xxxxx",
-        "LARK_APP_SECRET": "xxxxx"
-      }
-    }
-  }
-}
+```
+「顧客管理テーブルを作成して」
+「プロジェクト管理システムをWiki付きで作って」
+「在庫管理用のデータベースを構築して」
 ```
 
-### Cursor / VS Code
-
-Add to `.cursor/mcp.json` or workspace settings:
-
-```json
-{
-  "mcpServers": {
-    "lark-master": {
-      "command": "lark-mcp",
-      "env": {
-        "LARK_APP_ID": "cli_xxxxx",
-        "LARK_APP_SECRET": "xxxxx"
-      }
-    }
-  }
-}
-```
-
-### Direct Python Usage
-
-```python
-import asyncio
-from lark_master_mcp.server import LarkMCPServer
-
-async def main():
-    server = LarkMCPServer(
-        app_id="cli_xxxxx",
-        app_secret="xxxxx"
-    )
-    await server.run()
-
-asyncio.run(main())
-```
+AIが自動的に：
+1. 適切なテーブル構造を設計
+2. フィールドとタイプを選択
+3. Bitableを作成
+4. （オプション）Wikiドキュメントも生成
 
 ---
 
-## 🧠 Smart Tools (New!)
+## 🧠 スマートツール
 
 ### smart_build_bitable
-Build complete Bitable databases from natural language:
+自然言語からBitableを自動構築
 
 ```
-"顧客管理テーブルを作成して"
-→ Creates a full CRM with fields: Company, Contact, Email, Phone, Status, Priority, etc.
+入力: 「顧客管理テーブルを作成して」
 
-"プロジェクト管理用のベースを作って"
-→ Creates project tracking with: Task, Description, Status, Assignee, Due Date, etc.
+出力:
+- 会社名（テキスト）
+- 担当者名（テキスト）
+- メールアドレス（テキスト）
+- 電話番号（電話）
+- ステータス（選択: リード, 商談中, 契約済み, 休眠）
+- 優先度（選択: 高, 中, 低）
+- 担当営業（担当者）
+- 次回アクション日（日付）
+- 備考（テキスト）
 ```
-
-**Available Templates:**
-| Template | Description |
-|----------|-------------|
-| 顧客管理 | CRM with contacts, status, priority |
-| プロジェクト管理 | Tasks, status, assignees, deadlines |
-| 在庫管理 | Products, SKU, stock levels, pricing |
-| 売上管理 | Sales tracking, payments, revenue |
-| イベント管理 | Events, registrations, capacity |
-| 採用管理 | Candidates, interviews, evaluations |
-| 問い合わせ管理 | Support tickets, priority, status |
-| 会議メモ | Meeting notes, attendees, actions |
 
 ### process_lark_message
-Intelligent message processing - just send a message and the bot figures out what to do:
+メッセージを解析して自動実行
 
-```
-"顧客管理システムを作って" → Creates Bitable
-"Wikiスペースを作成" → Creates Wiki space
-"タスクを追加: レビュー依頼" → Creates task
-"ヘルプ" → Shows help
-```
+| メッセージ | 実行される処理 |
+|-----------|--------------|
+| 「顧客管理テーブルを作成」 | Bitable作成 |
+| 「Wikiスペースを作成」 | Wiki作成 |
+| 「タスクを追加: 〇〇」 | タスク作成 |
+| 「ヘルプ」 | ヘルプ表示 |
 
 ### create_bitable_with_wiki
-Create a complete system with documentation:
+Bitable + Wiki + ドキュメントを一括作成
 
 ```json
 {
-  "tool": "create_bitable_with_wiki",
-  "arguments": {
-    "message": "顧客管理システム",
-    "name": "CRM System"
-  }
+  "message": "プロジェクト管理システム",
+  "name": "Project Manager"
 }
 ```
-This creates:
-1. Bitable with appropriate structure
-2. Wiki space for documentation
-3. Auto-generated manual
+
+→ Bitable作成 + Wikiスペース作成 + マニュアル自動生成
 
 ---
 
-## 🛠️ All Tools (108 Total)
+## 📋 利用可能なテンプレート
 
-### Messaging & Communication (16 tools)
-| Tool | Description |
-|------|-------------|
-| `send_message` | Send text/rich text/media messages |
-| `reply_message` | Reply to a specific message |
-| `search_messages` | Search messages across chats |
-| `list_chats` | List accessible chats |
-| `create_chat_group` | Create a new chat group |
-| `get_chat_members` | Get members of a chat |
-| `add_bot_to_chat` | Add bot to a chat |
-| `create_poll` | Create polls |
-| `add_message_reaction` | Add emoji reaction |
-| `delete_message_reaction` | Remove reaction |
-| `pin_message` | Pin a message |
-| `unpin_message` | Unpin a message |
-| `forward_message` | Forward to another chat |
-| `send_urgent_message` | Send urgent notification |
-| `read_message` | Mark as read |
-| `get_message_read_users` | Get who read a message |
-
-### Calendar & Meetings (12 tools)
-| Tool | Description |
-|------|-------------|
-| `create_calendar_event` | Create calendar events |
-| `get_user_calendar` | Get calendar events |
-| `create_meeting` | Create video meetings |
-| `share_screen` | Start screen sharing |
-| `set_out_of_office` | Set OOO auto-reply |
-| `list_free_busy` | Check availability |
-| `create_calendar_reminder` | Add event reminders |
-| `create_recurring_event` | Create recurring events |
-| `book_meeting_room` | Book a room |
-| `search_meeting_rooms` | Find available rooms |
-| `accept_calendar_event` | Accept invitation |
-| `decline_calendar_event` | Decline invitation |
-
-### Documents & Files (17 tools)
-| Tool | Description |
-|------|-------------|
-| `create_document` | Create Lark Docs |
-| `upload_file` | Upload files |
-| `create_drive_folder` | Create folders |
-| `share_file` | Share files |
-| `get_spreadsheet_data` | Read spreadsheet |
-| `update_spreadsheet_data` | Update spreadsheet |
-| `search_documents` | Search documents |
-| `import_document` | Import external docs |
-| `export_document` | Export to PDF/DOCX |
-| `get_document_content` | Get document content |
-| `add_document_permission` | Add collaborators |
-| `add_document_comment` | Add comments |
-| `get_document_comments` | Get comments |
-| `create_document_from_template` | Use templates |
-| `lock_document_section` | Lock sections |
-| `unlock_document_section` | Unlock sections |
-| `subscribe_document_changes` | Watch for changes |
-
-### Bitable / Multi-dimensional Tables (12 tools)
-| Tool | Description |
-|------|-------------|
-| `create_bitable_app` | Create new Bitable |
-| `create_bitable_table` | Create table |
-| `create_bitable_view` | Create views |
-| `add_bitable_field` | Add fields |
-| `update_bitable_field` | Update field properties |
-| `get_bitable_fields` | Get field definitions |
-| `get_bitable_records` | Get records |
-| `batch_create_records` | Bulk create records |
-| `batch_update_records` | Bulk update records |
-| `delete_bitable_records` | Delete records |
-| `search_bitable_records` | Search with filters |
-| `get_bitable_views` | Get all views |
-| `update_bitable_view` | Update view |
-
-### Tasks & Workflows (7 tools)
-| Tool | Description |
-|------|-------------|
-| `create_task` | Create tasks |
-| `update_task_status` | Update status |
-| `add_task_reminder` | Add reminders |
-| `create_approval` | Create approval requests |
-| `get_approval_status` | Get approval status |
-| `create_workflow` | Create automations |
-| `execute_workflow` | Run workflows |
-
-### Advanced Approvals (5 tools)
-| Tool | Description |
-|------|-------------|
-| `transfer_approval` | Transfer to another user |
-| `cancel_approval` | Cancel request |
-| `cc_approval` | CC additional users |
-| `add_approval_comment` | Add comments |
-| `rollback_approval` | Rollback to previous step |
-
-### Video Conference (3 tools)
-| Tool | Description |
-|------|-------------|
-| `start_meeting_recording` | Start recording |
-| `stop_meeting_recording` | Stop recording |
-| `get_meeting_recording` | Get recording file |
-
-### Knowledge Management (3 tools)
-| Tool | Description |
-|------|-------------|
-| `create_wiki_space` | Create Wiki spaces |
-| `create_wiki_page` | Create Wiki pages |
-| `search_wiki` | Search Wiki |
-
-### HR & Organization (5 tools)
-| Tool | Description |
-|------|-------------|
-| `get_user_info` | Get user profile |
-| `get_department_users` | Get dept members |
-| `get_user_by_email_or_phone` | Find users |
-| `create_leave_request` | Submit leave |
-| `get_attendance_records` | Get attendance |
-
-### Helpdesk (4 tools)
-| Tool | Description |
-|------|-------------|
-| `create_helpdesk_ticket` | Create tickets |
-| `get_helpdesk_ticket` | Get ticket details |
-| `update_helpdesk_ticket` | Update tickets |
-| `list_helpdesk_tickets` | List tickets |
-
-### Drive Advanced (4 tools)
-| Tool | Description |
-|------|-------------|
-| `create_file_version` | Create versions |
-| `get_file_versions` | Get version history |
-| `update_file_permission` | Update permissions |
-| `get_file_permissions` | Get permissions |
-
-### Bot/App Management (3 tools)
-| Tool | Description |
-|------|-------------|
-| `create_bot_menu` | Create bot menus |
-| `update_bot_info` | Update bot profile |
-| `subscribe_events` | Subscribe to events |
-
-### Admin & Security (3 tools)
-| Tool | Description |
-|------|-------------|
-| `get_app_usage_stats` | Usage statistics |
-| `get_audit_logs` | Audit logs |
-| `manage_app_permissions` | Manage permissions |
-
-### AI/Assistant (2 tools)
-| Tool | Description |
-|------|-------------|
-| `create_ai_agent` | Create AI agents |
-| `chat_with_ai` | Chat with agents |
-
-### OKR (2 tools)
-| Tool | Description |
-|------|-------------|
-| `create_okr` | Create OKRs |
-| `update_okr_progress` | Update progress |
-
-### Forms (2 tools)
-| Tool | Description |
-|------|-------------|
-| `create_form` | Create forms |
-| `get_form_responses` | Get responses |
-
-### Smart Tools (7 tools)
-| Tool | Description |
-|------|-------------|
-| `smart_build_bitable` | Build Bitable from natural language |
-| `process_lark_message` | Auto-execute based on message |
-| `generate_bitable_documentation` | Generate docs |
-| `create_bitable_with_wiki` | Create system + docs |
-| `list_bitable_templates` | List templates |
-| `analyze_message_intent` | Analyze intent |
-| `get_lark_bot_help` | Get help |
+| テンプレート | 用途 | 主なフィールド |
+|-------------|------|---------------|
+| 顧客管理 | CRM、営業管理 | 会社名, 担当者, ステータス, 優先度 |
+| プロジェクト管理 | タスク管理、進捗管理 | タスク名, ステータス, 担当者, 期限 |
+| 在庫管理 | 商品・倉庫管理 | 商品名, SKU, 在庫数, 単価 |
+| 売上管理 | 販売・収益管理 | 取引日, 顧客, 金額, 支払方法 |
+| イベント管理 | セミナー・イベント | イベント名, 日時, 定員, 参加者数 |
+| 採用管理 | 人事・採用 | 候補者, 職種, 選考ステータス, 評価 |
+| 問い合わせ管理 | サポート・チケット | タイトル, カテゴリ, 優先度, ステータス |
+| 会議メモ | 議事録管理 | 会議名, 参加者, 議事内容, 決定事項 |
 
 ---
 
-## 📝 Examples
+## 🛠️ 全108ツール一覧
 
-### Create CRM System
+<details>
+<summary>📨 メッセージング（16ツール）</summary>
 
-```json
-{
-  "tool": "smart_build_bitable",
-  "arguments": {
-    "message": "顧客管理システムを作成して",
-    "name": "CRM"
-  }
-}
+| ツール | 機能 |
+|-------|------|
+| `send_message` | メッセージ送信 |
+| `reply_message` | 返信 |
+| `search_messages` | メッセージ検索 |
+| `list_chats` | チャット一覧 |
+| `create_chat_group` | グループ作成 |
+| `get_chat_members` | メンバー取得 |
+| `add_bot_to_chat` | Bot追加 |
+| `create_poll` | 投票作成 |
+| `add_message_reaction` | リアクション追加 |
+| `delete_message_reaction` | リアクション削除 |
+| `pin_message` | ピン留め |
+| `unpin_message` | ピン解除 |
+| `forward_message` | 転送 |
+| `send_urgent_message` | 緊急メッセージ |
+| `read_message` | 既読にする |
+| `get_message_read_users` | 既読者取得 |
+
+</details>
+
+<details>
+<summary>📅 カレンダー（12ツール）</summary>
+
+| ツール | 機能 |
+|-------|------|
+| `create_calendar_event` | 予定作成 |
+| `get_user_calendar` | 予定取得 |
+| `create_meeting` | 会議作成 |
+| `share_screen` | 画面共有 |
+| `set_out_of_office` | 不在設定 |
+| `list_free_busy` | 空き時間確認 |
+| `create_calendar_reminder` | リマインダー |
+| `create_recurring_event` | 繰り返し予定 |
+| `book_meeting_room` | 会議室予約 |
+| `search_meeting_rooms` | 会議室検索 |
+| `accept_calendar_event` | 予定承諾 |
+| `decline_calendar_event` | 予定辞退 |
+
+</details>
+
+<details>
+<summary>📄 ドキュメント（17ツール）</summary>
+
+| ツール | 機能 |
+|-------|------|
+| `create_document` | ドキュメント作成 |
+| `upload_file` | ファイルアップロード |
+| `create_drive_folder` | フォルダ作成 |
+| `share_file` | ファイル共有 |
+| `get_spreadsheet_data` | スプレッドシート読取 |
+| `update_spreadsheet_data` | スプレッドシート更新 |
+| `search_documents` | ドキュメント検索 |
+| `import_document` | インポート |
+| `export_document` | エクスポート |
+| `get_document_content` | 内容取得 |
+| `add_document_permission` | 権限追加 |
+| `add_document_comment` | コメント追加 |
+| `get_document_comments` | コメント取得 |
+| `create_document_from_template` | テンプレートから作成 |
+| `lock_document_section` | セクションロック |
+| `unlock_document_section` | ロック解除 |
+| `subscribe_document_changes` | 変更監視 |
+
+</details>
+
+<details>
+<summary>📊 Bitable（12ツール）</summary>
+
+| ツール | 機能 |
+|-------|------|
+| `create_bitable_app` | Base作成 |
+| `create_bitable_table` | テーブル作成 |
+| `create_bitable_view` | ビュー作成 |
+| `add_bitable_field` | フィールド追加 |
+| `update_bitable_field` | フィールド更新 |
+| `get_bitable_fields` | フィールド取得 |
+| `get_bitable_records` | レコード取得 |
+| `batch_create_records` | 一括作成 |
+| `batch_update_records` | 一括更新 |
+| `delete_bitable_records` | レコード削除 |
+| `search_bitable_records` | レコード検索 |
+| `get_bitable_views` | ビュー一覧 |
+| `update_bitable_view` | ビュー更新 |
+
+</details>
+
+<details>
+<summary>✅ タスク・ワークフロー（12ツール）</summary>
+
+| ツール | 機能 |
+|-------|------|
+| `create_task` | タスク作成 |
+| `update_task_status` | ステータス更新 |
+| `add_task_reminder` | リマインダー |
+| `create_approval` | 承認申請 |
+| `get_approval_status` | 承認状況確認 |
+| `transfer_approval` | 承認転送 |
+| `cancel_approval` | 承認キャンセル |
+| `cc_approval` | CC追加 |
+| `add_approval_comment` | コメント追加 |
+| `rollback_approval` | 差し戻し |
+| `create_workflow` | ワークフロー作成 |
+| `execute_workflow` | ワークフロー実行 |
+
+</details>
+
+<details>
+<summary>📚 その他（39ツール）</summary>
+
+**Wiki（3ツール）**: `create_wiki_space`, `create_wiki_page`, `search_wiki`
+
+**ビデオ会議（3ツール）**: `start_meeting_recording`, `stop_meeting_recording`, `get_meeting_recording`
+
+**HR・組織（5ツール）**: `get_user_info`, `get_department_users`, `get_user_by_email_or_phone`, `create_leave_request`, `get_attendance_records`
+
+**ヘルプデスク（4ツール）**: `create_helpdesk_ticket`, `get_helpdesk_ticket`, `update_helpdesk_ticket`, `list_helpdesk_tickets`
+
+**ドライブ高度（4ツール）**: `create_file_version`, `get_file_versions`, `update_file_permission`, `get_file_permissions`
+
+**Bot管理（3ツール）**: `create_bot_menu`, `update_bot_info`, `subscribe_events`
+
+**管理・セキュリティ（3ツール）**: `get_app_usage_stats`, `get_audit_logs`, `manage_app_permissions`
+
+**AI（2ツール）**: `create_ai_agent`, `chat_with_ai`
+
+**OKR（2ツール）**: `create_okr`, `update_okr_progress`
+
+**フォーム（2ツール）**: `create_form`, `get_form_responses`
+
+**スマートツール（7ツール）**: `smart_build_bitable`, `process_lark_message`, `generate_bitable_documentation`, `create_bitable_with_wiki`, `list_bitable_templates`, `analyze_message_intent`, `get_lark_bot_help`
+
+</details>
+
+---
+
+## 🔑 Larkアプリの作成
+
+### 1. Lark Open Platformにアクセス
+
+- **国際版**: https://open.larksuite.com/app
+- **中国版（飛書）**: https://open.feishu.cn/app
+
+### 2. アプリを作成
+
+1. 「Create App」をクリック
+2. 「Custom App」を選択
+3. アプリ名と説明を入力
+4. 作成完了
+
+### 3. 認証情報を取得
+
+1. 作成したアプリをクリック
+2. 「Credentials & Basic Info」に移動
+3. **App ID** と **App Secret** をコピー
+
+### 4. 権限を設定
+
+「Permissions & Scopes」で以下の権限を追加：
+
+**必須権限:**
+- `im:message` - メッセージング
+- `bitable:app` - Bitable操作
+- `docs:doc` - ドキュメント
+- `wiki:wiki` - Wiki
+- `contact:user.base:readonly` - ユーザー情報
+
+### 5. アプリを公開
+
+「App Release」からバージョンを作成し、公開
+
+---
+
+## 📁 プロジェクト構成
+
 ```
-
-### Send Message to Chat
-
-```json
-{
-  "tool": "send_message",
-  "arguments": {
-    "chat_id": "oc_abc123",
-    "message": "Hello from AI!",
-    "message_type": "text"
-  }
-}
-```
-
-### Create Calendar Event
-
-```json
-{
-  "tool": "create_calendar_event",
-  "arguments": {
-    "title": "Team Meeting",
-    "start_time": "2024-01-15T10:00:00",
-    "end_time": "2024-01-15T11:00:00",
-    "attendees": ["ou_user1", "ou_user2"]
-  }
-}
-```
-
-### Batch Create Records
-
-```json
-{
-  "tool": "batch_create_records",
-  "arguments": {
-    "app_token": "bascnxxxxxx",
-    "table_id": "tblxxxxxx",
-    "records": [
-      {"fields": {"Name": "Alice", "Email": "alice@example.com"}},
-      {"fields": {"Name": "Bob", "Email": "bob@example.com"}}
-    ]
-  }
-}
+LarkMasterMCP/
+├── src/lark_master_mcp/
+│   ├── __init__.py          # パッケージ初期化
+│   ├── server.py            # MCPサーバー本体
+│   ├── lark_client.py       # Lark APIクライアント
+│   ├── tools.py             # 108ツール定義
+│   ├── cli.py               # コマンドラインインターフェース
+│   ├── smart_builder.py     # スマートBitable構築エンジン
+│   └── message_handler.py   # メッセージ解析・処理
+├── docs/
+│   ├── SETUP_GUIDE.md       # セットアップガイド
+│   └── SMART_TOOLS_GUIDE.md # スマートツールガイド
+├── .env.example             # 環境変数テンプレート
+└── README.md                # このファイル
 ```
 
 ---
 
-## 🔒 Security
+## 🔒 セキュリティ
 
-- Use environment variables for credentials
-- OAuth 2.0 tenant access tokens
-- All communications over HTTPS
-- Auto token refresh
+- 認証情報は環境変数で管理（コードに埋め込まない）
+- OAuth 2.0 テナントアクセストークン使用
+- すべての通信はHTTPS
+- トークンは自動更新
 
-## 🔧 Development
+---
+
+## 🛠️ 開発者向け
 
 ```bash
-# Install dev dependencies
+# 開発用インストール
 pip install -e ".[dev]"
 
-# Run tests
+# テスト実行
 pytest
 
-# Format code
+# コードフォーマット
 black src/
 
-# Type check
+# 型チェック
 mypy src/
 
-# Lint
+# リント
 ruff src/
 ```
 
-## 📁 Project Structure
+---
 
-```
-src/lark_master_mcp/
-├── __init__.py          # Package init
-├── server.py            # MCP server
-├── lark_client.py       # Lark API client
-├── tools.py             # Tool definitions (108 tools)
-├── cli.py               # CLI interface
-├── smart_builder.py     # Smart Bitable builder
-└── message_handler.py   # Message processing
-```
+## 📞 サポート
 
-## 📄 License
-
-MIT License
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Make changes
-4. Add tests
-5. Submit PR
-
-## 📞 Support
-
-- [GitHub Issues](https://github.com/IvyGain/LarkMasterMCP/issues)
-- [Lark Open Platform Docs](https://open.larksuite.com/document)
+- **Issues**: [GitHub Issues](https://github.com/IvyGain/LarkMasterMCP/issues)
+- **Lark公式ドキュメント**: [open.larksuite.com](https://open.larksuite.com/document)
 
 ---
 
-## Changelog
+## 📜 ライセンス
 
-### v0.2.0 (Current)
-- Added 7 Smart Tools
-- Smart Bitable Builder with 8 templates
-- Message Handler for bot integration
-- Documentation Generator
-- Total 108 tools
+MIT License - 自由に使用・改変・配布できます。
+
+---
+
+## 🙏 謝辞
+
+- [Lark Open Platform](https://open.larksuite.com/)
+- [Model Context Protocol](https://modelcontextprotocol.io/)
+- [Anthropic Claude](https://claude.ai/)
+
+---
+
+## 📝 更新履歴
+
+### v0.2.0 (2024-11)
+- 🧠 スマートツール7個追加（合計108ツール）
+- 📊 SmartBitableBuilder：自然言語からBitable自動構築
+- 📝 MessageHandler：メッセージ解析・自動実行
+- 📚 DocumentationGenerator：Wiki自動生成
+- 📖 日本語ドキュメント整備
 
 ### v0.1.0
-- Initial release
-- 101 core Lark tools
-- Basic MCP functionality
+- 初回リリース
+- 101個の基本ツール
+- MCP基本機能
+
+---
+
+<div align="center">
+
+**⭐ このプロジェクトが役に立ったら、スターをお願いします！ ⭐**
+
+Made with ❤️ by [IvyGain](https://github.com/IvyGain)
+
+</div>
