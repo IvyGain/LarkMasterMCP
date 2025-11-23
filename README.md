@@ -481,6 +481,49 @@ fly deploy
 
 ---
 
+## 🤖 Lark Bot（@メンションで操作）
+
+### Bot機能の概要
+
+LarkチャットでBotに@メンションして話しかけると、自動的にMCPツールを実行して返信します。
+
+```
+@LarkMCP 顧客管理テーブルを作成して
+```
+↓
+Botが自動でBitableを作成して結果を返信！
+
+### Botのセットアップ
+
+1. **サーバーをデプロイ**（上記参照）
+
+2. **Lark Open Platformで設定**
+   - Bot機能を有効化
+   - Event Subscriptionを設定:
+     ```
+     https://your-server.com/webhook/event
+     ```
+   - 必要な権限を追加:
+     - `im:message`
+     - `im:message:send_as_bot`
+     - `bitable:app`
+
+3. **Botをチャットに追加**
+   - チャット設定 → Bot → 追加
+
+詳細は [BOT_SETUP_GUIDE.md](docs/BOT_SETUP_GUIDE.md) を参照
+
+### 使用例
+
+| メッセージ | 動作 |
+|-----------|------|
+| `@Bot 顧客管理テーブルを作成して` | 顧客管理Bitableを作成 |
+| `@Bot プロジェクト管理のベース作って` | プロジェクト管理Bitableを作成 |
+| `@Bot Wikiスペースを作成` | Wikiスペースを作成 |
+| `@Bot ヘルプ` | 使い方を表示 |
+
+---
+
 ## 🔒 セキュリティ
 
 - 認証情報は環境変数で管理（コードに埋め込まない）

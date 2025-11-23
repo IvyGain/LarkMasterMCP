@@ -401,6 +401,123 @@ def create_app() -> FastAPI:
             "result": {"content": [{"type": "text", "text": json.dumps(result)}]}
         }
 
+    # ===== Lark Bot Webhook Endpoints =====
+    # 処理済みメッセージID追跡（重複防止）
+    import time
+    import re
+    processed_messages: Dict[str, float] = {}
+
+    def clean_old_messages():
+        """古いメッセージIDを削除"""
+        current_time = time.time()
+        nonlocal processed_messages
+        processed_messages = {
+            msg_id: ts for msg_id, ts in processed_messages.items()
+            if current_time - ts < 300
+        }
+
+    def extract_text(content: str) -> str:
+        """メッセージからテキスト抽出"""
+        try:
+            content_json = json.loads(content)
+            text = content_json.get("text", "")
+        except (json.JSONDecodeError, TypeError):
+            text = content if isinstance(content, str) else ""
+        # @メンション除去
+        text = re.sub(r'@_user_\d+', '', text)
+        text = re.sub(r'@\S+', '', text)
+        return text.strip()
+
+    @app.post("/webhook/event")
+    async def webhook_event(request: Request):
+        """
+        Lark Bot Webhook エンドポイント
+
+        Lark Open Platformで設定するURL:
+        https://your-server.com/webhook/event
+        """
+        if not mcp_server:
+            raise HTTPException(status_code=503, detail="Server not configured")
+
+        try:
+            body = await request.json()
+            logger.info(f"Webhook received: {json.dumps(body, ensure_ascii=False)[:100]}...")
+
+            # URL検証（初回設定時）
+            if body.get("type") == "url_verification":
+                challenge = body.get("challenge", "")
+                return JSONResponse(content={"challenge": challenge})
+
+            # イベント処理
+            header = body.get("header", {})
+            event_type = header.get("event_type", "")
+            event = body.get("event", {})
+
+            # メッセージ受信イベント
+            if event_type == "im.message.receive_v1":
+                message = event.get("message", {})
+                sender = event.get("sender", {})
+
+                message_id = message.get("message_id", "")
+                chat_id = message.get("chat_id", "")
+                sender_type = sender.get("sender_type", "")
+
+                # 重複・Bot自身のメッセージは無視
+                clean_old_messages()
+                if message_id in processed_messages or sender_type == "app":
+                    return JSONResponse(content={"status": "ignored"})
+                processed_messages[message_id] = time.time()
+
+                # テキストメッセージのみ
+                if message.get("message_type") != "text":
+                    return JSONResponse(content={"status": "ignored_non_text"})
+
+                content = message.get("content", "{}")
+                text = extract_text(content)
+
+                if not text:
+                    return JSONResponse(content={"status": "empty"})
+
+                logger.info(f"Processing: {text[:50]}...")
+
+                # メッセージ処理
+                result = await mcp_server.message_handler.handle_message(text)
+
+                # 返信送信
+                await mcp_server.lark_client.send_message(
+                    chat_id=chat_id,
+                    message=result.message,
+                    message_type="text"
+                )
+
+                return JSONResponse(content={
+                    "status": "processed",
+                    "command_type": result.command_type.value
+                })
+
+            # Bot追加イベント
+            elif event_type == "im.chat.member.bot.added_v1":
+                chat_id = event.get("chat_id", "")
+                welcome = """🤖 **LarkMasterMCP Bot** が参加しました！
+
+@メンションして話しかけてください：
+• 「顧客管理テーブルを作成して」
+• 「プロジェクト管理用のベースを作って」
+• 「ヘルプ」で詳しい使い方"""
+
+                await mcp_server.lark_client.send_message(
+                    chat_id=chat_id,
+                    message=welcome,
+                    message_type="text"
+                )
+                return JSONResponse(content={"status": "welcomed"})
+
+            return JSONResponse(content={"status": "ignored", "event_type": event_type})
+
+        except Exception as e:
+            logger.error(f"Webhook error: {e}")
+            return JSONResponse(content={"status": "error", "error": str(e)})
+
     return app
 
 
