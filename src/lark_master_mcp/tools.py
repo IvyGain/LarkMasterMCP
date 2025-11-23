@@ -2360,5 +2360,137 @@ LARK_TOOLS: List[Dict[str, Any]] = [
             "properties": {},
             "additionalProperties": False
         }
+    },
+    # ===== Minutes (議事録) Tools =====
+    {
+        "name": "get_minute",
+        "description": "Get metadata for a Lark Minutes recording. Returns information like title, owner, duration, and participants.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "minute_token": {
+                    "type": "string",
+                    "description": "The minute token from the minute URL (e.g., from https://xxx.larksuite.com/minutes/obcnq9xxxxx)"
+                }
+            },
+            "required": ["minute_token"]
+        }
+    },
+    {
+        "name": "get_minute_transcript",
+        "description": "Get the full transcript (文字起こし) of a Lark Minutes recording. Returns speaker-attributed text segments.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "minute_token": {
+                    "type": "string",
+                    "description": "The minute token from the minute URL"
+                }
+            },
+            "required": ["minute_token"]
+        }
+    },
+    {
+        "name": "get_minute_statistics",
+        "description": "Get speaking statistics for a Lark Minutes recording. Returns per-speaker duration and word counts.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "minute_token": {
+                    "type": "string",
+                    "description": "The minute token from the minute URL"
+                }
+            },
+            "required": ["minute_token"]
+        }
+    },
+    {
+        "name": "analyze_minute",
+        "description": "Analyze a Lark Minutes recording to extract tasks, decisions, and key points. Provides a structured summary of the meeting.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "minute_token": {
+                    "type": "string",
+                    "description": "The minute token from the minute URL"
+                }
+            },
+            "required": ["minute_token"]
+        }
+    },
+    {
+        "name": "create_bitable_from_minute",
+        "description": "Create a Bitable summary from a Lark Minutes recording. Automatically extracts meeting info, tasks, and decisions into organized tables.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "minute_token": {
+                    "type": "string",
+                    "description": "The minute token from the minute URL"
+                },
+                "folder_token": {
+                    "type": "string",
+                    "description": "Optional: Folder token where to create the Bitable"
+                }
+            },
+            "required": ["minute_token"]
+        }
+    },
+    {
+        "name": "process_minute_message",
+        "description": "Process a chat message containing a minute link. Detects intent and returns appropriate action suggestions or executes the requested operation.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "description": "The message containing a minute link and optional instructions"
+                },
+                "chat_id": {
+                    "type": "string",
+                    "description": "The chat ID for sending interactive responses"
+                },
+                "user_id": {
+                    "type": "string",
+                    "description": "The user ID who sent the message"
+                }
+            },
+            "required": ["message", "chat_id", "user_id"]
+        }
+    },
+    # ===== Interactive Message Tools =====
+    {
+        "name": "send_interactive_card",
+        "description": "Send an interactive card message with buttons to a Lark chat. Used for confirmations, selections, and interactive workflows.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "string",
+                    "description": "The chat ID to send the card to"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Card header title"
+                },
+                "content": {
+                    "type": "string",
+                    "description": "Card body content (supports Lark Markdown)"
+                },
+                "buttons": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "text": {"type": "string"},
+                            "value": {"type": "string"},
+                            "type": {"type": "string", "enum": ["primary", "default", "danger"]}
+                        }
+                    },
+                    "description": "Array of button configurations"
+                }
+            },
+            "required": ["chat_id", "title", "content"]
+        }
     }
 ]

@@ -13,6 +13,7 @@ from .lark_client import LarkClient
 from .tools import LARK_TOOLS
 from .smart_builder import SmartBitableBuilder, DocumentationGenerator
 from .message_handler import MessageHandler, MessageParser
+from .minutes_handler import MinutesHandler, ActionType
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -31,8 +32,9 @@ class LarkMCPServer:
         self.doc_generator = DocumentationGenerator(self.lark_client)
         self.message_handler = MessageHandler(self.lark_client, self.smart_builder)
         self.message_parser = MessageParser()
+        self.minutes_handler = MinutesHandler(self.lark_client, self.smart_builder)
 
-        logger.info("Initializing LarkMasterMCP server with 108 tools (including 7 smart tools)")
+        logger.info("Initializing LarkMasterMCP server with 115 tools (including 14 smart/minutes tools)")
         self._register_handlers()
     
     def _register_handlers(self):
@@ -841,6 +843,103 @@ class LarkMCPServer:
                         "help_text": help_result.message,
                         "templates": help_result.data.get("templates", []) if help_result.data else []
                     }
+
+                # ===== Minutes (議事録) Tools =====
+                elif name == "get_minute":
+                    result = await self.lark_client.get_minute(
+                        minute_token=arguments["minute_token"]
+                    )
+
+                elif name == "get_minute_transcript":
+                    result = await self.lark_client.get_minute_transcript(
+                        minute_token=arguments["minute_token"]
+                    )
+
+                elif name == "get_minute_statistics":
+                    result = await self.lark_client.get_minute_statistics(
+                        minute_token=arguments["minute_token"]
+                    )
+
+                elif name == "analyze_minute":
+                    minute_data = await self.minutes_handler.get_minute_data(
+                        arguments["minute_token"]
+                    )
+                    if minute_data.get("success"):
+                        analysis = self.minutes_handler.analyze_transcript(
+                            minute_data.get("transcript", {})
+                        )
+                        result = {
+                            "title": analysis.title,
+                            "duration_minutes": analysis.duration_seconds // 60,
+                            "participants": analysis.participants,
+                            "tasks": analysis.tasks,
+                            "decisions": analysis.decisions,
+                            "key_points": analysis.key_points,
+                            "summary": analysis.transcript_summary
+                        }
+                    else:
+                        result = {"error": minute_data.get("error")}
+
+                elif name == "create_bitable_from_minute":
+                    minute_data = await self.minutes_handler.get_minute_data(
+                        arguments["minute_token"]
+                    )
+                    if minute_data.get("success"):
+                        analysis = self.minutes_handler.analyze_transcript(
+                            minute_data.get("transcript", {})
+                        )
+                        from .minutes_handler import PendingAction
+                        action = PendingAction(
+                            action_id="direct",
+                            action_type=ActionType.CREATE_SUMMARY_BITABLE,
+                            minute_token=arguments["minute_token"],
+                            chat_id="",
+                            user_id=""
+                        )
+                        result = await self.minutes_handler.execute_action(action, analysis)
+                    else:
+                        result = {"error": minute_data.get("error")}
+
+                elif name == "process_minute_message":
+                    result = await self.minutes_handler.handle_message_with_minute(
+                        text=arguments["message"],
+                        chat_id=arguments["chat_id"],
+                        user_id=arguments["user_id"]
+                    )
+
+                elif name == "send_interactive_card":
+                    buttons = arguments.get("buttons", [])
+                    card = {
+                        "config": {"wide_screen_mode": True},
+                        "header": {
+                            "title": {"tag": "plain_text", "content": arguments["title"]},
+                            "template": "blue"
+                        },
+                        "elements": [
+                            {
+                                "tag": "div",
+                                "text": {"tag": "lark_md", "content": arguments["content"]}
+                            }
+                        ]
+                    }
+                    if buttons:
+                        card["elements"].append({"tag": "hr"})
+                        card["elements"].append({
+                            "tag": "action",
+                            "actions": [
+                                {
+                                    "tag": "button",
+                                    "text": {"tag": "plain_text", "content": btn.get("text", "")},
+                                    "type": btn.get("type", "default"),
+                                    "value": btn.get("value", "")
+                                }
+                                for btn in buttons
+                            ]
+                        })
+                    result = await self.lark_client.send_interactive_message(
+                        chat_id=arguments["chat_id"],
+                        card=card
+                    )
 
                 else:
                     raise ValueError(f"Unknown tool: {name}")

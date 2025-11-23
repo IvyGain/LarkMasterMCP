@@ -480,7 +480,30 @@ def create_app() -> FastAPI:
 
                 logger.info(f"Processing: {text[:50]}...")
 
-                # メッセージ処理
+                user_id = sender.get("sender_id", {}).get("user_id", "")
+
+                # 議事録リンクをチェック
+                minute_result = await mcp_server.minutes_handler.handle_message_with_minute(
+                    text=text,
+                    chat_id=chat_id,
+                    user_id=user_id
+                )
+
+                if minute_result.get("has_minute"):
+                    # 議事録リンクが見つかった - インタラクティブカードを送信
+                    card = minute_result.get("card")
+                    if card:
+                        await mcp_server.lark_client.send_interactive_message(
+                            chat_id=chat_id,
+                            card=card
+                        )
+                        return JSONResponse(content={
+                            "status": "minute_detected",
+                            "needs_confirmation": minute_result.get("needs_confirmation", False),
+                            "needs_clarification": minute_result.get("needs_clarification", False)
+                        })
+
+                # 通常のメッセージ処理
                 result = await mcp_server.message_handler.handle_message(text)
 
                 # 返信送信
@@ -511,6 +534,82 @@ def create_app() -> FastAPI:
                     message_type="text"
                 )
                 return JSONResponse(content={"status": "welcomed"})
+
+            # カードアクション（ボタンクリック）イベント
+            elif event_type == "card.action.trigger":
+                action = event.get("action", {})
+                value_str = action.get("value", "{}")
+                operator = event.get("operator", {})
+                user_id = operator.get("user_id", "")
+
+                try:
+                    value = json.loads(value_str) if isinstance(value_str, str) else value_str
+                except json.JSONDecodeError:
+                    value = {}
+
+                action_id = value.get("action_id", "")
+                action_type_str = value.get("action_type", "")
+                confirm = value.get("confirm")
+
+                logger.info(f"Card action: action_id={action_id}, type={action_type_str}, confirm={confirm}")
+
+                # ペンディングアクションを取得
+                pending = mcp_server.minutes_handler.get_pending_action(action_id)
+                if not pending:
+                    return JSONResponse(content={"status": "action_expired"})
+
+                chat_id = pending.chat_id
+
+                # 確認フロー
+                if confirm is True:
+                    # 実行確認された - アクションを実行
+                    result = await mcp_server.minutes_handler.execute_action(pending)
+                    mcp_server.minutes_handler.remove_pending_action(action_id)
+
+                    # 結果を送信
+                    message = result.get("message", "処理が完了しました")
+                    await mcp_server.lark_client.send_message(
+                        chat_id=chat_id,
+                        message=f"✅ {message}",
+                        message_type="text"
+                    )
+
+                    return JSONResponse(content={"status": "executed", "result": result})
+
+                elif confirm is False:
+                    # キャンセルされた
+                    mcp_server.minutes_handler.remove_pending_action(action_id)
+                    await mcp_server.lark_client.send_message(
+                        chat_id=chat_id,
+                        message="❌ キャンセルしました",
+                        message_type="text"
+                    )
+                    return JSONResponse(content={"status": "cancelled"})
+
+                else:
+                    # 初回ボタンクリック - 確認カードを表示
+                    minute_data = await mcp_server.minutes_handler.get_minute_data(pending.minute_token)
+                    if minute_data.get("success"):
+                        analysis = mcp_server.minutes_handler.analyze_transcript(
+                            minute_data.get("transcript", {})
+                        )
+                        confirm_card = mcp_server.minutes_handler.create_confirmation_card(
+                            action_type=pending.action_type,
+                            analysis=analysis,
+                            action_id=action_id
+                        )
+                        await mcp_server.lark_client.send_interactive_message(
+                            chat_id=chat_id,
+                            card=confirm_card
+                        )
+                        return JSONResponse(content={"status": "confirmation_sent"})
+                    else:
+                        await mcp_server.lark_client.send_message(
+                            chat_id=chat_id,
+                            message=f"❌ 議事録の取得に失敗しました: {minute_data.get('error')}",
+                            message_type="text"
+                        )
+                        return JSONResponse(content={"status": "error", "error": minute_data.get("error")})
 
             return JSONResponse(content={"status": "ignored", "event_type": event_type})
 

@@ -1686,6 +1686,117 @@ class LarkClient:
             params=params
         )
     
+    # ===== Minutes (議事録) API =====
+
+    async def get_minute(
+        self,
+        minute_token: str
+    ) -> Dict[str, Any]:
+        """
+        Get minute metadata.
+
+        Args:
+            minute_token: The token of the minute (from minute URL)
+
+        Returns:
+            Minute metadata including title, owner, create_time, etc.
+        """
+        return await self._make_request(
+            "GET",
+            f"/minutes/v1/minutes/{minute_token}"
+        )
+
+    async def get_minute_transcript(
+        self,
+        minute_token: str
+    ) -> Dict[str, Any]:
+        """
+        Get minute transcript (文字起こし).
+
+        Args:
+            minute_token: The token of the minute
+
+        Returns:
+            Transcript data with speakers and text segments
+        """
+        return await self._make_request(
+            "GET",
+            f"/minutes/v1/minutes/{minute_token}/transcript"
+        )
+
+    async def get_minute_statistics(
+        self,
+        minute_token: str
+    ) -> Dict[str, Any]:
+        """
+        Get minute statistics (発言統計).
+
+        Args:
+            minute_token: The token of the minute
+
+        Returns:
+            Statistics including speaker duration, word count, etc.
+        """
+        return await self._make_request(
+            "GET",
+            f"/minutes/v1/minutes/{minute_token}/statistics"
+        )
+
+    # ===== Interactive Message (インタラクティブメッセージ) =====
+
+    async def send_interactive_message(
+        self,
+        chat_id: str,
+        card: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Send an interactive card message with buttons.
+
+        Args:
+            chat_id: The chat ID to send to
+            card: The card content (Lark Message Card format)
+
+        Returns:
+            API response with message_id
+        """
+        import json
+        data = {
+            "receive_id": chat_id,
+            "msg_type": "interactive",
+            "content": json.dumps(card)
+        }
+        return await self._make_request(
+            "POST",
+            "/im/v1/messages",
+            data=data,
+            params={"receive_id_type": "chat_id"}
+        )
+
+    async def update_interactive_message(
+        self,
+        message_id: str,
+        card: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Update an existing interactive card message.
+
+        Args:
+            message_id: The message ID to update
+            card: The new card content
+
+        Returns:
+            API response
+        """
+        import json
+        data = {
+            "content": json.dumps(card)
+        }
+        return await self._make_request(
+            "PATCH",
+            f"/im/v1/messages/{message_id}",
+            data=data
+        )
+
     async def close(self):
         """Close the HTTP client."""
         await self.client.aclose()
