@@ -620,8 +620,17 @@ def create_app() -> FastAPI:
     return app
 
 
-def run_server(host: str = "0.0.0.0", port: int = 8000):
+def run_server(host: str = None, port: int = None):
     """Run the remote MCP server."""
+    import os
+
+    # Railway等のクラウド環境ではPORT環境変数を使用
+    if host is None:
+        host = os.getenv("HOST", "0.0.0.0")
+    if port is None:
+        port = int(os.getenv("PORT", "8000"))
+
+    logger.info(f"Starting server on {host}:{port}")
     app = create_app()
     uvicorn.run(app, host=host, port=port)
 
