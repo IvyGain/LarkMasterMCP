@@ -17,6 +17,7 @@ from .lark_client import LarkClient
 from .tools import LARK_TOOLS
 from .smart_builder import SmartBitableBuilder, DocumentationGenerator
 from .message_handler import MessageHandler, MessageParser
+from .minutes_handler import MinutesHandler
 
 # Setup logger
 logging.basicConfig(level=logging.INFO)
@@ -42,6 +43,7 @@ class LarkRemoteMCPServer:
         self.doc_generator = DocumentationGenerator(self.lark_client)
         self.message_handler = MessageHandler(self.lark_client, self.smart_builder)
         self.message_parser = MessageParser()
+        self.minutes_handler = MinutesHandler(self.lark_client, self.smart_builder)
 
         logger.info("Initialized LarkMasterMCP Remote Server with 108 tools")
 
