@@ -485,39 +485,53 @@ def create_app() -> FastAPI:
                 user_id = sender.get("sender_id", {}).get("user_id", "")
 
                 # 議事録リンクをチェック
-                minute_result = await mcp_server.minutes_handler.handle_message_with_minute(
-                    text=text,
-                    chat_id=chat_id,
-                    user_id=user_id
-                )
+                try:
+                    minute_result = await mcp_server.minutes_handler.handle_message_with_minute(
+                        text=text,
+                        chat_id=chat_id,
+                        user_id=user_id
+                    )
 
-                if minute_result.get("has_minute"):
-                    # 議事録リンクが見つかった - インタラクティブカードを送信
-                    card = minute_result.get("card")
-                    if card:
-                        await mcp_server.lark_client.send_interactive_message(
-                            chat_id=chat_id,
-                            card=card
-                        )
-                        return JSONResponse(content={
-                            "status": "minute_detected",
-                            "needs_confirmation": minute_result.get("needs_confirmation", False),
-                            "needs_clarification": minute_result.get("needs_clarification", False)
-                        })
+                    if minute_result.get("has_minute"):
+                        # 議事録リンクが見つかった - インタラクティブカードを送信
+                        card = minute_result.get("card")
+                        if card:
+                            await mcp_server.lark_client.send_interactive_message(
+                                chat_id=chat_id,
+                                card=card
+                            )
+                            return JSONResponse(content={
+                                "status": "minute_detected",
+                                "needs_confirmation": minute_result.get("needs_confirmation", False),
+                                "needs_clarification": minute_result.get("needs_clarification", False)
+                            })
+                except Exception as e:
+                    logger.warning(f"Minutes handler error (continuing): {e}")
 
-                # 通常のメッセージ処理
-                result = await mcp_server.message_handler.handle_message(text)
+                # 通常のメッセージ処理 - 必ず応答する
+                try:
+                    result = await mcp_server.message_handler.handle_message(text)
+                    response_message = result.message
+                    command_type = result.command_type.value
+                except Exception as e:
+                    logger.error(f"Message handler error: {e}")
+                    response_message = f"📡 メッセージを受け取りました！\n\n「{text[:30]}...」\n\n処理中にエラーが発生しましたが、私は動作しています。\n「ヘルプ」で使い方を確認できます。"
+                    command_type = "error_fallback"
 
                 # 返信送信
-                await mcp_server.lark_client.send_message(
-                    chat_id=chat_id,
-                    message=result.message,
-                    message_type="text"
-                )
+                try:
+                    await mcp_server.lark_client.send_message(
+                        chat_id=chat_id,
+                        message=response_message,
+                        message_type="text"
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to send message: {e}")
+                    return JSONResponse(content={"status": "send_error", "error": str(e)})
 
                 return JSONResponse(content={
                     "status": "processed",
-                    "command_type": result.command_type.value
+                    "command_type": command_type
                 })
 
             # Bot追加イベント

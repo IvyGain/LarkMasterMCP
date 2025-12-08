@@ -20,6 +20,8 @@ class CommandType(Enum):
     CREATE_TASK = "create_task"
     SEARCH = "search"
     HELP = "help"
+    GREETING = "greeting"
+    CONVERSATION = "conversation"
     UNKNOWN = "unknown"
 
 
@@ -82,6 +84,11 @@ class MessageParser:
         CommandType.HELP: [
             r"(?:ヘルプ|help|使い方|できること)",
             r"(?:教えて|何ができる)",
+        ],
+        CommandType.GREETING: [
+            r"^(?:こんにちは|こんばんは|おはよう|ハロー|hello|hi|hey|やあ|おっす)",
+            r"(?:テスト|test|聞こえ|返事|応答)",
+            r"^(?:よろしく|はじめまして)",
         ],
     }
 
@@ -230,6 +237,8 @@ class MessageHandler:
             CommandType.CREATE_TASK: self._handle_create_task,
             CommandType.SEARCH: self._handle_search,
             CommandType.HELP: self._handle_help,
+            CommandType.GREETING: self._handle_greeting,
+            CommandType.CONVERSATION: self._handle_conversation,
         }
 
     async def handle_message(self, message: str) -> CommandResult:
@@ -246,18 +255,10 @@ class MessageHandler:
         parsed = self.parser.parse(message)
         logger.info(f"Parsed command: {parsed.command_type.value} (confidence: {parsed.confidence})")
 
-        # 信頼度が低い場合
+        # 信頼度が低い場合は会話モードで応答
         if parsed.confidence < 0.3:
-            return CommandResult(
-                success=False,
-                data=None,
-                message="申し訳ありません。指示を理解できませんでした。\n\n以下のようなコマンドが使えます：\n"
-                       "• 「顧客管理テーブルを作成して」\n"
-                       "• 「プロジェクト管理用のベースを作って」\n"
-                       "• 「Wikiスペースを作成」\n"
-                       "• 「ヘルプ」",
-                command_type=CommandType.UNKNOWN
-            )
+            parsed.command_type = CommandType.CONVERSATION
+            return await self._handle_conversation(parsed)
 
         # ハンドラ実行
         handler = self.handlers.get(parsed.command_type)
@@ -507,15 +508,76 @@ class MessageHandler:
             command_type=CommandType.HELP
         )
 
-    async def _handle_unknown(self, parsed: ParsedCommand) -> CommandResult:
-        """不明なコマンド処理"""
+    async def _handle_greeting(self, parsed: ParsedCommand) -> CommandResult:
+        """挨拶・テスト応答"""
+        message = parsed.original_message.lower()
+
+        # テスト系のメッセージ
+        if any(kw in message for kw in ['テスト', 'test', '聞こえ', '返事', '応答']):
+            response = """📡 はい、聞こえています！
+
+LarkMasterMCP Bot が正常に動作しています。
+
+私にできることの例：
+• 「顧客管理テーブルを作成して」→ Bitable自動作成
+• 「プロジェクト管理用のベースを作って」→ テンプレートから作成
+• 「Wikiスペースを作成」→ ナレッジベース作成
+• 「ヘルプ」→ 詳しい使い方
+
+何かお手伝いできることはありますか？"""
+        else:
+            # 通常の挨拶
+            import random
+            greetings = [
+                "こんにちは！LarkMasterMCP Botです。何かお手伝いできることはありますか？",
+                "はい！何でもお聞きください。Bitableの作成やドキュメント管理などお手伝いします。",
+                "お呼びですか？「ヘルプ」で私にできることを確認できます！",
+            ]
+            response = random.choice(greetings)
+
         return CommandResult(
-            success=False,
+            success=True,
             data=None,
-            message="申し訳ありません。指示を理解できませんでした。\n"
-                   "「ヘルプ」と入力すると使い方を確認できます。",
-            command_type=CommandType.UNKNOWN
+            message=response,
+            command_type=CommandType.GREETING
         )
+
+    async def _handle_conversation(self, parsed: ParsedCommand) -> CommandResult:
+        """会話形式の応答 - どんなメッセージにも応答"""
+        message = parsed.original_message
+
+        # メッセージの内容に応じた応答を生成
+        response = f"""💬 メッセージを受け取りました！
+
+「{message[:50]}{'...' if len(message) > 50 else ''}」
+
+私はLark操作の自動化が得意です。以下のようなことができます：
+
+📊 **データ管理**
+• 「顧客管理テーブルを作成」
+• 「プロジェクト進捗管理のベースを作って」
+• 「在庫管理システムを構築」
+
+📚 **ドキュメント**
+• 「Wikiスペースを作成」
+• 「ドキュメントを作成」
+
+✅ **タスク**
+• 「タスクを追加: 〇〇」
+
+具体的にやりたいことを教えていただければ、お手伝いします！
+「ヘルプ」で詳しい使い方を確認できます。"""
+
+        return CommandResult(
+            success=True,
+            data={"original_message": message},
+            message=response,
+            command_type=CommandType.CONVERSATION
+        )
+
+    async def _handle_unknown(self, parsed: ParsedCommand) -> CommandResult:
+        """不明なコマンド処理 - 会話モードにフォールバック"""
+        return await self._handle_conversation(parsed)
 
 
 class BotEventHandler:
